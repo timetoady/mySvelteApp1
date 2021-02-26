@@ -1,8 +1,12 @@
 <script>
-  import tryCatch from "./api";
-  export let name;
+  import Options from "./options.svelte"
+  import "bootstrap/dist/css/bootstrap.min.css";
+  //export let name;
 
-  //tryCatch("https://opentdb.com/api.php?amount=10", "&category=10")
+  const setName = (name) => {
+
+  }
+  
 </script>
 
 <main>
@@ -16,7 +20,10 @@
       placeholder="Your name here"
       required
     />
-    <button>LET'S PLAY</button>
+    <div class="button1">
+      
+      <Options/>
+    </div>
   </div>
 </main>
 
@@ -37,10 +44,11 @@
   .wrapper {
     margin: 0 auto;
   }
-  button {
-    color: white;
-    background-color: #0400ff;
+
+  .button1{
+	  margin-top: .2rem;
   }
+
 
   @media (min-width: 640px) {
     main {
@@ -48,6 +56,7 @@
     }
     .wrapper {
       display: flex;
+      justify-content: space-between;
       flex-direction: column;
       align-items: center;
       max-width: 800px;
