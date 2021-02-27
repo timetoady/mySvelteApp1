@@ -1,15 +1,12 @@
-import tryCatch from "./api"
-
 export const setOptions = (form) => {
-  form.preventDefault();
   try {
+    localStorage.setItem("Settings", form)
   } catch (err) {
     throw new Error(err.message);
   }
 };
 
 export const buildJsonFormData = (form) => {
-  //console.log("Form is:", form);
   const jsonFormData = {};
   for (const pair of new FormData(form)) {
     jsonFormData[pair[0]] = pair[1];
@@ -30,6 +27,3 @@ export const getAllStorageInfo = () => {
   return noNulls;
 };
 
-export const requestTrivia = () => {
-    
-}

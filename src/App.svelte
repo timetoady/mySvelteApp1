@@ -1,19 +1,23 @@
 <script>
   import Options from "./options.svelte"
   import "bootstrap/dist/css/bootstrap.min.css";
+  import { setOptions } from "./setLocal"
+
   //export let name;
 
-  const setName = (name) => {
-
+  let name = "";
+  const defaulSettings = () => {
+    const defaults = {"numQuestions":"10","categorySelect":"any","difficulty":"any","questionType":"any"}
+    setOptions("Settings", defaults)
+    
   }
-  
 </script>
 
 <main>
-  <h1>Trivia Time</h1>
+  <h1 on:load={defaulSettings}>Trivia Time</h1>
   <div class="wrapper">
     <h2>Care for a round of trivia?</h2>
-    <input
+    <input bind:value={name}
       class="nameInput"
       name="playerName"
       type="text"

@@ -1,4 +1,8 @@
 <script>
+  //have to set default options on load
+  //add option to set color? Or change to dark mode?
+  //use bind:group on inputs?
+
   import {
     Button,
     Modal,
@@ -7,29 +11,71 @@
     ModalHeader,
     Spinner,
   } from "sveltestrap";
-  import { giveCategories } from "./api";
+  import tryCatch, { giveCategories } from "./api";
   import { buildJsonFormData, getAllStorageInfo } from "./setLocal";
+  //import ErrorModal, {toggleError} from "./error.svelte"
   let open = false;
+ 
+  let errorOpen = false;
+  const toggleError = () => (errorOpen = !errorOpen);
   const toggle = () => (open = !open);
   const setOptions = () => {
     let form = document.querySelector("#optionForm");
-    form.addEventListener("submit", (event) => event.preventDefault());
     const formData = buildJsonFormData(form);
     console.log("Form info", JSON.stringify(formData));
     localStorage.setItem("Settings", JSON.stringify(formData));
     console.log("Local storage says:", getAllStorageInfo());
     toggle();
   };
+
+  export const getQuestions = async () => {
+    const currentStorage = getAllStorageInfo();
+    console.log(currentStorage);
+    let {
+      numQuestions,
+      categorySelect,
+      difficulty,
+      questionType,
+    } = currentStorage[0];
+    categorySelect = `&category=${categorySelect}`;
+    if (categorySelect === "&category=any") categorySelect = "";
+    if (difficulty === "any") difficulty = "";
+    if (questionType === "any") questionType = "";
+    numQuestions = parseInt(numQuestions);
+    let requestURL = `https://opentdb.com/api.php?amount=${numQuestions}${categorySelect}${difficulty}${questionType}&encode=url3986`;
+    console.log("RequestURL", requestURL);
+    let questions = await tryCatch(requestURL);
+    if (questions.response_code === 1 || !questions.results.length) {
+      console.log("Options too narrow, please broaden.");
+      toggleError();
+    }
+    console.log(questions.results);
+  };
 </script>
 
 <div>
-  <Button class="text-uppercase" color="primary">LET'S PLAY</Button>
+  <Button on:click={getQuestions} class="text-uppercase" color="primary"
+    >LET'S PLAY</Button
+  >
+
   <Button
     class="text-uppercase"
     id="optionButton"
     color="secondary"
     on:click={toggle}>Options</Button
   >
+  <div>
+    <Modal isOpen={errorOpen} {toggleError}>
+      <ModalHeader style="color: red" {toggleError}>Error</ModalHeader>
+      <ModalBody>
+        Error: Options too narrow, not enough results returned. Please broaden your selections.
+      </ModalBody>
+      <ModalFooter>
+        <Button color="primary" on:click={toggleError}>OKAY</Button>
+      </ModalFooter>
+    </Modal>
+  </div>
+  <!-- <ErrorModal theError="Options too narrow, not enough results. Please broaden your selections."/> -->
 
   <Modal isOpen={open} {toggle}>
     <ModalHeader {toggle}>Options</ModalHeader>
@@ -39,11 +85,23 @@
         <Spinner color="primary" />
       </div>
     {:then category}
-      <form data-toggle="tab" id="optionForm" action="">
-          <div>
-            <label for="numQuestions"># Questions (max 50):</label>
-            <input type="number" name="numQuestions" id="numQuestions" min="1" max="50" value="10" />
-          </div>
+      <form
+        on:submit|preventDefault
+        data-toggle="tab"
+        id="optionForm"
+        action=""
+      >
+        <div>
+          <label for="numQuestions"># Questions (max 50):</label>
+          <input
+            type="number"
+            name="numQuestions"
+            id="numQuestions"
+            min="1"
+            max="50"
+            value="10"
+          />
+        </div>
 
         <label for="categorySelect">Category:</label>
         <select name="categorySelect" id="categorySelect">
@@ -87,8 +145,8 @@
     border-radius: 3px;
     border: 2px black solid;
   }
-  label{
-      margin: .5rem 0 0 0;
+  label {
+    margin: 0.5rem 0 0 0;
   }
 
   input:focus,
