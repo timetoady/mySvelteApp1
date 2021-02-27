@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "bootstrap": "^4.6.0",
+    "lodash": "^4.17.21",
     "sirv-cli": "^1.0.0",
     "sveltestrap": "^3.13.0"
   }

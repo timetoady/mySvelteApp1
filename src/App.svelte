@@ -1,20 +1,24 @@
 <script>
+  //Next: trigger a modal forEach for each question, #if for type, have category in upper right
+  //score in upper left next to name
+  import { onMount } from 'svelte';
   import Options from "./options.svelte"
   import "bootstrap/dist/css/bootstrap.min.css";
-  import { setOptions } from "./setLocal"
-
-  //export let name;
-
-  let name = "";
-  const defaulSettings = () => {
+  import { setDefaultOptions, getAllStorageInfo } from "./setLocal"
+  import { getQuestions } from "./api"
+  export let name = "";
+  const defaultSettings = () => {
     const defaults = {"numQuestions":"10","categorySelect":"any","difficulty":"any","questionType":"any"}
-    setOptions("Settings", defaults)
+    setDefaultOptions(defaults)
+    getAllStorageInfo()
     
   }
+  onMount(defaultSettings)
+  // if(getQuestions === false) console.log("Got 'em!")
 </script>
 
 <main>
-  <h1 on:load={defaulSettings}>Trivia Time</h1>
+  <h1>Trivia Time</h1>
   <div class="wrapper">
     <h2>Care for a round of trivia?</h2>
     <input bind:value={name}
@@ -25,7 +29,6 @@
       required
     />
     <div class="button1">
-      
       <Options/>
     </div>
   </div>

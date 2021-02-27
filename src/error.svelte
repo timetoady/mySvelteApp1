@@ -1,19 +1,19 @@
 <script context="module">
-    export let theError;
-    export let errorOpen = false;
-    export const toggleError = () => (errorOpen = !errorOpen);
-    import {
-      Button,
-      Modal,
-      ModalBody,
-      ModalFooter,
-      ModalHeader
-    } from 'sveltestrap';
+    // export let theError;
+    // export let errorOpen = false;
+    // export const toggleError = () => (errorOpen = !errorOpen);
+    // import {
+    //   Button,
+    //   Modal,
+    //   ModalBody,
+    //   ModalFooter,
+    //   ModalHeader
+    // } from 'sveltestrap';
   </script>
   
   <div>
-    <!-- <Button color="danger" on:click={toggleError}></Button> -->
-    <Modal isOpen={errorOpen} {toggleError}>
+    
+    <!-- <Modal isOpen={errorOpen} {toggleError}>
       <ModalHeader style="color: red" {toggleError}>Error</ModalHeader>
       <ModalBody>
         Error: {theError}
@@ -21,11 +21,11 @@
       <ModalFooter>
         <Button color="primary" on:click={toggleError}>CONFIRM</Button>
       </ModalFooter>
-    </Modal>
+    </Modal> -->
   </div>
 
   <style>
-      .anError{
+      /* .anError{
           color: red ;
-      }
+      } */
   </style>

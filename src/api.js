@@ -1,5 +1,6 @@
 import { getAllStorageInfo } from './setLocal'
-import { toggleError, theError } from "./error.svelte";
+import formatQuestions from "./utilities";
+// import { toggleError, theError } from "./error.svelte";
 
 //Main default fetch method
 export default async function tryCatch(URL, modifier = "", method = "GET", headers = {} ) {
@@ -36,18 +37,20 @@ export default async function tryCatch(URL, modifier = "", method = "GET", heade
       difficulty,
       questionType,
     } = currentStorage[0];
-    categorySelect = `&category=${categorySelect}`
+    categorySelect = `&category=${categorySelect}`;
     if (categorySelect === "&category=any") categorySelect = "";
     if (difficulty === "any") difficulty = "";
     if (questionType === "any") questionType = "";
-    numQuestions = parseInt(numQuestions)
+    numQuestions = parseInt(numQuestions);
     let requestURL = `https://opentdb.com/api.php?amount=${numQuestions}${categorySelect}${difficulty}${questionType}&encode=url3986`;
-    console.log("RequestURL", requestURL)
-    let questions = await tryCatch(requestURL)
+    console.log("RequestURL", requestURL);
+    let questions = await tryCatch(requestURL);
     if (questions.response_code === 1 || !questions.results.length) {
-      console.log("Options too narrow, please broaden.")
+      console.log("Options too narrow, please broaden.");
       toggleError();
-      
+    } else {
+      let formattedQuestions = formatQuestions(questions);
+      console.log("Formated questions:", formattedQuestions);
+      return formattedQuestions;
     }
-    console.log(questions.results)
   };

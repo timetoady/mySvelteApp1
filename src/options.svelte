@@ -1,8 +1,6 @@
 <script>
-  //have to set default options on load
   //add option to set color? Or change to dark mode?
   //use bind:group on inputs?
-
   import {
     Button,
     Modal,
@@ -12,19 +10,24 @@
     Spinner,
   } from "sveltestrap";
   import tryCatch, { giveCategories } from "./api";
-  import { buildJsonFormData, getAllStorageInfo } from "./setLocal";
+  import { getAllStorageInfo, setOptions } from "./setLocal";
+  import formatQuestions from "./utilities";
   //import ErrorModal, {toggleError} from "./error.svelte"
   let open = false;
- 
+  let openGame = false;
   let errorOpen = false;
+  let size;
+  let questions;
   const toggleError = () => (errorOpen = !errorOpen);
   const toggle = () => (open = !open);
-  const setOptions = () => {
+  const toggleGame = () => {
+    size = 'lg';
+    openGame = !openGame;
+  }
+  const confirmOptions = () => {
     let form = document.querySelector("#optionForm");
-    const formData = buildJsonFormData(form);
-    console.log("Form info", JSON.stringify(formData));
-    localStorage.setItem("Settings", JSON.stringify(formData));
-    console.log("Local storage says:", getAllStorageInfo());
+    setOptions(form);
+    getQuestions()
     toggle();
   };
 
@@ -48,15 +51,20 @@
     if (questions.response_code === 1 || !questions.results.length) {
       console.log("Options too narrow, please broaden.");
       toggleError();
+    } else {
+      let formattedQuestions = formatQuestions(questions);
+      console.log("Formated questions:", formattedQuestions);
+      questions = formattedQuestions
+      //here assign game objects?
+      return formattedQuestions;
     }
-    console.log(questions.results);
   };
+
+  
 </script>
 
 <div>
-  <Button on:click={getQuestions} class="text-uppercase" color="primary"
-    >LET'S PLAY</Button
-  >
+  <Button on:click={toggleGame} class="text-uppercase" color="primary">LET'S PLAY</Button>
 
   <Button
     class="text-uppercase"
@@ -65,10 +73,12 @@
     on:click={toggle}>Options</Button
   >
   <div>
+    <!-- ERROR MODAL HERE -->
     <Modal isOpen={errorOpen} {toggleError}>
       <ModalHeader style="color: red" {toggleError}>Error</ModalHeader>
       <ModalBody>
-        Error: Options too narrow, not enough results returned. Please broaden your selections.
+        Error: Options too narrow, not enough results returned. Please broaden
+        your selections.
       </ModalBody>
       <ModalFooter>
         <Button color="primary" on:click={toggleError}>OKAY</Button>
@@ -127,8 +137,31 @@
     {/await}
 
     <ModalFooter>
-      <Button color="primary" on:click={setOptions}>Confirm</Button>
+      <Button color="primary" on:click={confirmOptions}>Confirm</Button>
       <Button color="secondary" on:click={toggle}>Cancel</Button>
+    </ModalFooter>
+  </Modal>
+</div>
+
+<div>
+  <!-- Game modal, maybe <Button color="danger" on:click={toggleGame}>Open Modal</Button> -->
+  <Modal id="gameModal" isOpen={openGame} {toggleGame} {size}>
+    {#if getAllStorageInfo()[0].difficulty === '&difficulty=medium' }
+    <ModalHeader {toggleGame}>Quiz: Medium </ModalHeader>
+    {:else if getAllStorageInfo()[0].difficulty === '&difficulty=hard'}
+    <ModalHeader {toggleGame}>Quiz: Hard </ModalHeader>
+    {:else if getAllStorageInfo()[0].difficulty === '&difficulty=easy'}
+    <ModalHeader {toggleGame}>Quiz: Hard </ModalHeader>
+    {:else}
+    <ModalHeader {toggleGame}>Quiz: Any </ModalHeader>
+    {/if}
+    <ModalBody>
+      Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua.
+    </ModalBody>
+    <ModalFooter>
+      <Button color="primary" on:click={toggleGame}>Do Something</Button>
+      <Button color="secondary" on:click={toggleGame}>QUIT</Button>
     </ModalFooter>
   </Modal>
 </div>
