@@ -1,4 +1,5 @@
 <script>
+  //To do next: impliment snackbar to show results instead of alerts
   import {
     Button,
     Modal,
@@ -11,7 +12,7 @@
   //import { fly, fade } from "svelte/transition";
   import tryCatch, { giveCategories } from "./api";
   import { getAllStorageInfo, setOptions } from "./setLocal";
-  import formatQuestions from "./utilities";
+  import formatQuestions, { shuffle, flipCoin, randomNamePicker } from "./utilities";
   import { yourName, currentQuestions, optionInfo } from "./stores";
   let open = false;
   let openGame = false;
@@ -23,10 +24,7 @@
     await getQuestions();
     questionNum = 0;
   };
-  const shuffle = (array) => {
-    array.sort(() => Math.random() - 0.5);
-    return array;
-  };
+
   const rightAnswer = () => {
     alert("You are correct!");
     questionNum += 1;
@@ -36,9 +34,7 @@
     alert("Nope, sorry.");
     questionNum += 1;
   };
-  function flipCoin() {
-    return Math.floor(Math.random() * 2 + 1);
-  }
+
   const toggleError = () => (errorOpen = !errorOpen);
   const toggle = () => (open = !open);
   $: toggleGame = () => {
@@ -51,25 +47,8 @@
     getQuestions();
     toggle();
   };
-  const randomNamePicker = () => {
-    const nameList = [
-      "Lazy",
-      "Rebel",
-      "Nameless",
-      "Fast Clicker",
-      "Quickdraw",
-      "Shooter McGavin",
-      "Nobody",
-      "Stranger",
-      "Personage of Mystery",
-      "Quick Hand Joe",
-      "They-who-won't-be-Named"
-    ];
-    const lazyName = nameList[Math.floor(Math.random() * nameList.length)];
-    return lazyName;
-  };
 
-  export const getQuestions = async () => {
+  const getQuestions = async () => {
     const currentStorage = getAllStorageInfo();
     console.log(currentStorage);
     let {
@@ -279,22 +258,28 @@
           {/each}
           {#if questionNum == $currentQuestions.length}
             <h3>End of quiz.</h3>
-            <p>{$yourName === "Put your name here" ||
+            <h5>{$yourName === "Put your name here" ||
               $yourName === "".trim()
                 ? ($yourName = randomNamePicker())
-                : ($yourName = $yourName)}'s tally': {score} out of {$currentQuestions.length}</p>
+                : ($yourName = $yourName)}'s tally: {score} out of {$currentQuestions.length}</h5>
                 {#if (score/$currentQuestions.length) <= 0.3}
-                Oops! Maybe study up and try again.
+                <h6>Oops! Maybe study up and try again.</h6>
+
                 {:else if (score/$currentQuestions.length) > 0.3 && (score/$currentQuestions.length) <= 0.6}
-                Yeah, not great, but not bad.
+                <h6>Yeah, not great, but not bad.</h6>
+                
                 {:else if (score/$currentQuestions.length) > 6 && (score/$currentQuestions.length) <=8} 
-                Well done! Just a bit more to go.
+                <h5>Well done! Just a bit more to go.</h5>
+                
                 {:else if (score/$currentQuestions.length) == 0.9}
-                So close! Just inches away from trivia mastery!
+                <h4>So close! Just inches away from trivia mastery!</h4>
+                
                 {:else if (score/$currentQuestions.length) == 1}
-                Excellent! You're a trivia master!
-                {:else if (score/$currentQuestions.length) == 1 && $optionInfo.difficulty == "hard"}
-                Congradulations! You are king of all trivia! We bow before you utter trivia mastery!
+                <h3>Excellent! You're a trivia master!</h3>
+                
+                {:else if (score/$currentQuestions.length) == 1 && $optionInfo.difficulty == "hard" && $currentQuestions.length >= 10}
+                <h2>Congradulations! You are king of all trivia! We bow before you utter trivia mastery!</h2>
+                
                 
                 {/if}
           {/if}

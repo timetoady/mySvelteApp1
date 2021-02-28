@@ -34,4 +34,40 @@ const formatQuestions = (questionsData) => {
   return resultArray;
 };
 
+export const shuffle = (array) => {
+  array.sort(() => Math.random() - 0.5);
+  return array;
+};
+export const rightAnswer = () => {
+  alert("You are correct!");
+  questionNum += 1;
+  score += 1;
+};
+export const wrongAnswer = () => {
+  alert("Nope, sorry.");
+  questionNum += 1;
+};
+
+export function flipCoin() {
+  return Math.floor(Math.random() * 2 + 1);
+}
+
+export const randomNamePicker = () => {
+  const nameList = [
+    "Lazy",
+    "Rebel",
+    "Nameless",
+    "Fast Clicker",
+    "Quickdraw",
+    "Shooter McGavin",
+    "Nobody",
+    "Stranger",
+    "Personage of Mystery",
+    "Quick Hand Joe",
+    "They-who-won't-be-Named"
+  ];
+  const lazyName = nameList[Math.floor(Math.random() * nameList.length)];
+  return lazyName;
+};
+
 export default formatQuestions
