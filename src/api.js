@@ -30,7 +30,7 @@ export default async function tryCatch(URL, modifier = "", method = "GET", heade
 
   export const getQuestions = async () => {
     const currentStorage = getAllStorageInfo();
-    console.log(currentStorage);
+    //console.log(currentStorage);
     let {
       numQuestions,
       categorySelect,
@@ -43,14 +43,14 @@ export default async function tryCatch(URL, modifier = "", method = "GET", heade
     if (questionType === "any") questionType = "";
     numQuestions = parseInt(numQuestions);
     let requestURL = `https://opentdb.com/api.php?amount=${numQuestions}${categorySelect}${difficulty}${questionType}&encode=url3986`;
-    console.log("RequestURL", requestURL);
+    //console.log("RequestURL", requestURL);
     let questions = await tryCatch(requestURL);
     if (questions.response_code === 1 || !questions.results.length) {
       console.log("Options too narrow, please broaden.");
       toggleError();
     } else {
       let formattedQuestions = formatQuestions(questions);
-      console.log("Formated questions:", formattedQuestions);
+      //console.log("Formated questions:", formattedQuestions);
       return formattedQuestions;
     }
   };
