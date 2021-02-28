@@ -1,6 +1,4 @@
 <script>
-  //add option to set color? Or change to dark mode?
-  //use bind:group on inputs?
   import {
     Button,
     Modal,
@@ -9,26 +7,61 @@
     ModalHeader,
     Spinner,
   } from "sveltestrap";
+  //import { fly, fade } from "svelte/transition";
   import tryCatch, { giveCategories } from "./api";
   import { getAllStorageInfo, setOptions } from "./setLocal";
   import formatQuestions from "./utilities";
-  //import ErrorModal, {toggleError} from "./error.svelte"
+  import { yourName, currentQuestions } from "./stores";
   let open = false;
   let openGame = false;
   let errorOpen = false;
   let size;
-  let questions;
+  let questionNum = 0;
+  let score = 0;
+  const tryAgain = async () => {
+    await getQuestions();
+    questionNum = 0;
+  };
+  const shuffle = (array) => {
+    array.sort(() => Math.random() - 0.5);
+    return array;
+  };
+  const rightAnswer = () => {
+    alert("You are correct!");
+    questionNum += 1;
+    score += 1;
+  };
+  const wrongAnswer = () => {
+    alert("Nope, sorry.");
+    questionNum += 1;
+  };
+  function flipCoin() {
+    return Math.floor(Math.random() * 2 + 1);
+  }
   const toggleError = () => (errorOpen = !errorOpen);
   const toggle = () => (open = !open);
-  const toggleGame = () => {
-    size = 'lg';
+  $: toggleGame = () => {
+    size = "lg";
     openGame = !openGame;
-  }
+  };
   const confirmOptions = () => {
     let form = document.querySelector("#optionForm");
     setOptions(form);
-    getQuestions()
+    getQuestions();
     toggle();
+  };
+  const randomNamePicker = () => {
+    const nameList = [
+      "Lazy",
+      "Rebel",
+      "Nameless",
+      "Fast Clicker",
+      "Quickdraw",
+      "Shooter McGavin",
+      "Nobody",
+    ];
+    const lazyName = nameList[Math.floor(Math.random() * nameList.length)];
+    return lazyName;
   };
 
   export const getQuestions = async () => {
@@ -54,17 +87,24 @@
     } else {
       let formattedQuestions = formatQuestions(questions);
       console.log("Formated questions:", formattedQuestions);
-      questions = formattedQuestions
-      //here assign game objects?
+      questions = formattedQuestions;
+      $currentQuestions = formattedQuestions;
       return formattedQuestions;
     }
   };
 
-  
+  const endGame = () => {
+    toggleGame();
+    getQuestions();
+    score = 0;
+    questionNum = 0;
+  };
 </script>
 
 <div>
-  <Button on:click={toggleGame} class="text-uppercase" color="primary">LET'S PLAY</Button>
+  <Button on:click={toggleGame} class="text-uppercase" color="primary"
+    >LET'S PLAY</Button
+  >
 
   <Button
     class="text-uppercase"
@@ -146,23 +186,112 @@
 <div>
   <!-- Game modal, maybe <Button color="danger" on:click={toggleGame}>Open Modal</Button> -->
   <Modal id="gameModal" isOpen={openGame} {toggleGame} {size}>
-    {#if getAllStorageInfo()[0].difficulty === '&difficulty=medium' }
-    <ModalHeader {toggleGame}>Quiz: Medium </ModalHeader>
-    {:else if getAllStorageInfo()[0].difficulty === '&difficulty=hard'}
-    <ModalHeader {toggleGame}>Quiz: Hard </ModalHeader>
-    {:else if getAllStorageInfo()[0].difficulty === '&difficulty=easy'}
-    <ModalHeader {toggleGame}>Quiz: Hard </ModalHeader>
+    {#if getAllStorageInfo()[0].difficulty === "&difficulty=medium"}
+      <ModalHeader {toggleGame}>Quiz: Medium</ModalHeader>
+    {:else if getAllStorageInfo()[0].difficulty === "&difficulty=hard"}
+      <ModalHeader {toggleGame}>Quiz: Hard</ModalHeader>
+    {:else if getAllStorageInfo()[0].difficulty === "&difficulty=easy"}
+      <ModalHeader {toggleGame}>Quiz: Easy</ModalHeader>
     {:else}
-    <ModalHeader {toggleGame}>Quiz: Any </ModalHeader>
+      <ModalHeader {toggleGame}>Quiz: Any Difficulty</ModalHeader>
     {/if}
-    <ModalBody>
-      Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
-      tempor incididunt ut labore et dolore magna aliqua.
-    </ModalBody>
-    <ModalFooter>
-      <Button color="primary" on:click={toggleGame}>Do Something</Button>
-      <Button color="secondary" on:click={toggleGame}>QUIT</Button>
-    </ModalFooter>
+    {#key questionNum}
+      {console.log(questionNum, currentQuestions.length)}
+      <ModalBody>
+        {#await $currentQuestions}
+          <Spinner /> Loading...
+        {:then questions}
+          {#each questions as question, index (question.question)}
+            {#if questionNum == index}
+              <div>
+                {#if questionNum === 0}
+                  <div>
+                    <h6>
+                      Okay, {$yourName === "Put your name here" ||
+                      $yourName === "".trim()
+                        ? ($yourName = randomNamePicker())
+                        : ($yourName = $yourName)}, let's Quiz!
+                    </h6>
+                  </div>
+                {/if}
+                {#if questionNum !== 0}
+                  <div class="scoreboard">
+                    <h6>
+                      {$yourName === "Put your name here" ||
+                      $yourName === "".trim()
+                        ? ($yourName = randomNamePicker())
+                        : ($yourName = $yourName)}'s Score: {score}
+                    </h6>
+                    <p>Category: {question.category}</p>
+                  </div>
+                {/if}
+                {#if questionNum === 0}<p>Category: {question.category}</p>{/if}
+                <p>Question {index + 1}: {question.question}</p>
+                {#if question.type === "boolean"}
+                  {#if flipCoin() === 1}
+                    <div>
+                      <label>
+                        <input on:click={wrongAnswer} type="radio" />
+                        {question.incorrectAnswer}
+                      </label>
+                    </div>
+                    <div>
+                      <label>
+                        <input on:click={rightAnswer} type="radio" />
+                        {question.correctAnswer}
+                      </label>
+                    </div>
+                  {:else}
+                    <div>
+                      <label>
+                        <input on:click={rightAnswer} type="radio" />
+                        {question.correctAnswer}
+                      </label>
+                    </div>
+                    <div>
+                      <label>
+                        <input on:click={wrongAnswer} type="radio" />
+                        {question.incorrectAnswer}
+                      </label>
+                    </div>
+                  {/if}
+                {:else if question.type === "multiple"}
+                  {#each shuffle(question.answers) as theAnswers}
+                    <div>
+                      <label>
+                        <input
+                          type="radio"
+                          on:click|preventDefault={theAnswers.correct
+                            ? rightAnswer
+                            : wrongAnswer}
+                        />
+                        {theAnswers.answer}
+                      </label>
+                    </div>
+                  {/each}
+                {/if}
+              </div>
+            {/if}
+            {#if questionNum == currentQuestions.length + 1}
+              <p>End of quiz.</p>
+              <p>{yourName}{score}</p>
+            {/if}
+          {/each}
+        {:catch error}
+          <p>Something went wrong: {error.message}</p>
+        {/await}
+      </ModalBody>
+      <ModalFooter>
+        {#if questionNum === 0}
+          <Button color="secondary" on:click={endGame}>CANCEL</Button>
+        {:else if questionNum == currentQuestions.length + 1}
+          <Button color="primary" on:click={tryAgain}>TRY AGAIN</Button>
+          <Button color="danger" on:click={endGame}>QUIT</Button>
+        {:else}
+          <Button color="danger" on:click={endGame}>QUIT</Button>
+        {/if}
+      </ModalFooter>
+    {/key}
   </Modal>
 </div>
 
@@ -192,5 +321,10 @@
   #spinnerDiv {
     margin: 0 auto;
     text-align: center;
+  }
+
+  .scoreboard {
+    display: flex;
+    justify-content: space-between;
   }
 </style>

@@ -5,14 +5,16 @@
   import Options from "./options.svelte"
   import "bootstrap/dist/css/bootstrap.min.css";
   import { setDefaultOptions, getAllStorageInfo } from "./setLocal"
-  import { getQuestions } from "./api"
+  //import { getQuestions } from "./api"
   export let name = "";
+  import { yourName } from './stores.js';
   const defaultSettings = () => {
     const defaults = {"numQuestions":"10","categorySelect":"any","difficulty":"any","questionType":"any"}
     setDefaultOptions(defaults)
     getAllStorageInfo()
-    
   }
+
+
   onMount(defaultSettings)
   // if(getQuestions === false) console.log("Got 'em!")
 </script>
@@ -21,7 +23,7 @@
   <h1>Trivia Time</h1>
   <div class="wrapper">
     <h2>Care for a round of trivia?</h2>
-    <input bind:value={name}
+    <input bind:value={ $yourName }
       class="nameInput"
       name="playerName"
       type="text"
