@@ -5,18 +5,14 @@
   import Options from "./options.svelte"
   import "bootstrap/dist/css/bootstrap.min.css";
   import { setDefaultOptions, getAllStorageInfo } from "./setLocal"
-  //import { getQuestions } from "./api"
-  export let name = "";
   import { yourName } from './stores.js';
   const defaultSettings = () => {
     const defaults = {"numQuestions":"10","categorySelect":"any","difficulty":"any","questionType":"any"}
     setDefaultOptions(defaults)
     getAllStorageInfo()
+    
   }
-
-
   onMount(defaultSettings)
-  // if(getQuestions === false) console.log("Got 'em!")
 </script>
 
 <main>
@@ -27,7 +23,7 @@
       class="nameInput"
       name="playerName"
       type="text"
-      placeholder="Your name here"
+      placeholder="Name"
       required
     />
     <div class="button1">

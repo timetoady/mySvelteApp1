@@ -7,11 +7,12 @@
     ModalHeader,
     Spinner,
   } from "sveltestrap";
+  import { onMount } from "svelte";
   //import { fly, fade } from "svelte/transition";
   import tryCatch, { giveCategories } from "./api";
   import { getAllStorageInfo, setOptions } from "./setLocal";
   import formatQuestions from "./utilities";
-  import { yourName, currentQuestions } from "./stores";
+  import { yourName, currentQuestions, optionInfo } from "./stores";
   let open = false;
   let openGame = false;
   let errorOpen = false;
@@ -59,6 +60,10 @@
       "Quickdraw",
       "Shooter McGavin",
       "Nobody",
+      "Stranger",
+      "Personage of Mystery",
+      "Quick Hand Joe",
+      "They-who-won't-be-Named"
     ];
     const lazyName = nameList[Math.floor(Math.random() * nameList.length)];
     return lazyName;
@@ -87,8 +92,7 @@
     } else {
       let formattedQuestions = formatQuestions(questions);
       console.log("Formated questions:", formattedQuestions);
-      questions = formattedQuestions;
-      $currentQuestions = formattedQuestions;
+      currentQuestions.set(formattedQuestions);
       return formattedQuestions;
     }
   };
@@ -99,6 +103,7 @@
     score = 0;
     questionNum = 0;
   };
+  onMount(getQuestions);
 </script>
 
 <div>
@@ -112,6 +117,7 @@
     color="secondary"
     on:click={toggle}>Options</Button
   >
+
   <div>
     <!-- ERROR MODAL HERE -->
     <Modal isOpen={errorOpen} {toggleError}>
@@ -125,8 +131,8 @@
       </ModalFooter>
     </Modal>
   </div>
-  <!-- <ErrorModal theError="Options too narrow, not enough results. Please broaden your selections."/> -->
 
+  <!-- Options modal here -->
   <Modal isOpen={open} {toggle}>
     <ModalHeader {toggle}>Options</ModalHeader>
     <ModalBody>Select your game options below.</ModalBody>
@@ -152,7 +158,6 @@
             value="10"
           />
         </div>
-
         <label for="categorySelect">Category:</label>
         <select name="categorySelect" id="categorySelect">
           <option value="any">All Categories</option>
@@ -196,7 +201,6 @@
       <ModalHeader {toggleGame}>Quiz: Any Difficulty</ModalHeader>
     {/if}
     {#key questionNum}
-      {console.log(questionNum, currentQuestions.length)}
       <ModalBody>
         {#await $currentQuestions}
           <Spinner /> Loading...
@@ -272,11 +276,28 @@
                 {/if}
               </div>
             {/if}
-            {#if questionNum == currentQuestions.length + 1}
-              <p>End of quiz.</p>
-              <p>{yourName}{score}</p>
-            {/if}
           {/each}
+          {#if questionNum == $currentQuestions.length}
+            <h3>End of quiz.</h3>
+            <p>{$yourName === "Put your name here" ||
+              $yourName === "".trim()
+                ? ($yourName = randomNamePicker())
+                : ($yourName = $yourName)}'s tally': {score} out of {$currentQuestions.length}</p>
+                {#if (score/$currentQuestions.length) <= 0.3}
+                Oops! Maybe study up and try again.
+                {:else if (score/$currentQuestions.length) > 0.3 && (score/$currentQuestions.length) <= 0.6}
+                Yeah, not great, but not bad.
+                {:else if (score/$currentQuestions.length) > 6 && (score/$currentQuestions.length) <=8} 
+                Well done! Just a bit more to go.
+                {:else if (score/$currentQuestions.length) == 0.9}
+                So close! Just inches away from trivia mastery!
+                {:else if (score/$currentQuestions.length) == 1}
+                Excellent! You're a trivia master!
+                {:else if (score/$currentQuestions.length) == 1 && $optionInfo.difficulty == "hard"}
+                Congradulations! You are king of all trivia! We bow before you utter trivia mastery!
+                
+                {/if}
+          {/if}
         {:catch error}
           <p>Something went wrong: {error.message}</p>
         {/await}
@@ -284,7 +305,7 @@
       <ModalFooter>
         {#if questionNum === 0}
           <Button color="secondary" on:click={endGame}>CANCEL</Button>
-        {:else if questionNum == currentQuestions.length + 1}
+        {:else if questionNum == $currentQuestions.length}
           <Button color="primary" on:click={tryAgain}>TRY AGAIN</Button>
           <Button color="danger" on:click={endGame}>QUIT</Button>
         {:else}

@@ -1,6 +1,6 @@
 import { getAllStorageInfo } from './setLocal'
 import formatQuestions from "./utilities";
-// import { toggleError, theError } from "./error.svelte";
+
 
 //Main default fetch method
 export default async function tryCatch(URL, modifier = "", method = "GET", headers = {} ) {
