@@ -7,12 +7,16 @@
     ModalFooter,
     ModalHeader,
     Spinner,
+    Alert,
   } from "sveltestrap";
   import { onMount } from "svelte";
-  //import { fly, fade } from "svelte/transition";
   import tryCatch, { giveCategories } from "./api";
   import { getAllStorageInfo, setOptions } from "./setLocal";
-  import formatQuestions, { shuffle, flipCoin, randomNamePicker } from "./utilities";
+  import formatQuestions, {
+    shuffle,
+    flipCoin,
+    randomNamePicker,
+  } from "./utilities";
   import { yourName, currentQuestions, optionInfo } from "./stores";
   let open = false;
   let openGame = false;
@@ -20,19 +24,43 @@
   let size;
   let questionNum = 0;
   let score = 0;
+  let visible = false;
+  let alertColor = "danger";
+  let message = "Sorry, that is incorrect.";
   const tryAgain = async () => {
     await getQuestions();
     questionNum = 0;
+    visible = false;
+    alertColor = "info";
+    message = "Here's your new quiz! Good luck!";
   };
-
+//  const hideAlerts = () => {
+//     const hideAlert = setTimeout(() => {
+//     visible = false;
+//   }, 3000);
+//   return hideAlert
+//  }
+//   function clearAlert(timeoutID) {
+//     window.clearTimeout(timeoutID);
+//   }
   const rightAnswer = () => {
-    alert("You are correct!");
+    //alert("You are correct!");
+    //clearAlert(hideAlerts());
+    visible = true;
+    alertColor = "success";
+    message = "Correct! On to the next one!";
     questionNum += 1;
     score += 1;
+    // hideAlerts()
   };
   const wrongAnswer = () => {
-    alert("Nope, sorry.");
+    //alert("Nope, sorry.");
+    //clearAlert(hideAlerts());
+    visible = true;
+    alertColor = "danger";
+    message = "Sorry, that was incorrect. Try the next one:";
     questionNum += 1;
+    //hideAlerts()
   };
 
   const toggleError = () => (errorOpen = !errorOpen);
@@ -70,7 +98,7 @@
       toggleError();
     } else {
       let formattedQuestions = formatQuestions(questions);
-      //console.log("Formated questions:", formattedQuestions);
+      console.log("Formated questions:", formattedQuestions);
       currentQuestions.set(formattedQuestions);
       return formattedQuestions;
     }
@@ -180,113 +208,125 @@
       <ModalHeader {toggleGame}>Quiz: Any Difficulty</ModalHeader>
     {/if}
     {#key questionNum}
-      <ModalBody>
-        {#await $currentQuestions}
-          <Spinner /> Loading...
-        {:then questions}
-          {#each questions as question, index (question.question)}
-            {#if questionNum == index}
-              <div>
-                {#if questionNum === 0}
-                  <div>
-                    <h6>
-                      Okay, {$yourName === "Put your name here" ||
-                      $yourName === "".trim()
-                        ? ($yourName = randomNamePicker())
-                        : ($yourName = $yourName)}, let's Quiz!
-                    </h6>
-                  </div>
-                {/if}
-                {#if questionNum !== 0}
-                  <div class="scoreboard">
-                    <h6>
-                      {$yourName === "Put your name here" ||
-                      $yourName === "".trim()
-                        ? ($yourName = randomNamePicker())
-                        : ($yourName = $yourName)}'s Score: {score}
-                    </h6>
-                    <p>Category: {question.category}</p>
-                  </div>
-                {/if}
-                {#if questionNum === 0}<p>Category: {question.category}</p>{/if}
-                <p>Question {index + 1}: {question.question}</p>
-                {#if question.type === "boolean"}
-                  {#if flipCoin() === 1}
+      <div>
+        <ModalBody>
+          {#await $currentQuestions}
+            <Spinner /> Loading...
+          {:then questions}
+            {#each questions as question, index (question.question)}
+              {#if questionNum == index}
+                <div>
+                  {#if questionNum === 0}
                     <div>
-                      <label>
-                        <input on:click={wrongAnswer} type="radio" />
-                        {question.incorrectAnswer}
-                      </label>
-                    </div>
-                    <div>
-                      <label>
-                        <input on:click={rightAnswer} type="radio" />
-                        {question.correctAnswer}
-                      </label>
-                    </div>
-                  {:else}
-                    <div>
-                      <label>
-                        <input on:click={rightAnswer} type="radio" />
-                        {question.correctAnswer}
-                      </label>
-                    </div>
-                    <div>
-                      <label>
-                        <input on:click={wrongAnswer} type="radio" />
-                        {question.incorrectAnswer}
-                      </label>
+                      <h6>
+                        Okay, {$yourName === "Put your name here" ||
+                        $yourName === "".trim()
+                          ? ($yourName = randomNamePicker())
+                          : ($yourName = $yourName)}, let's Quiz!
+                      </h6>
                     </div>
                   {/if}
-                {:else if question.type === "multiple"}
-                  {#each shuffle(question.answers) as theAnswers}
-                    <div>
-                      <label>
-                        <input
-                          type="radio"
-                          on:click|preventDefault={theAnswers.correct
-                            ? rightAnswer
-                            : wrongAnswer}
-                        />
-                        {theAnswers.answer}
-                      </label>
+                  {#if questionNum !== 0}
+                    <div class="scoreboard">
+                      <h6>
+                        {$yourName === "Put your name here" ||
+                        $yourName === "".trim()
+                          ? ($yourName = randomNamePicker())
+                          : ($yourName = $yourName)}'s Score: {score}
+                      </h6>
+                      <p>Category: {question.category}</p>
                     </div>
-                  {/each}
-                {/if}
-              </div>
-            {/if}
-          {/each}
-          {#if questionNum == $currentQuestions.length}
-            <h3>End of quiz.</h3>
-            <h5>{$yourName === "Put your name here" ||
-              $yourName === "".trim()
-                ? ($yourName = randomNamePicker())
-                : ($yourName = $yourName)}'s tally: {score} out of {$currentQuestions.length}</h5>
-                {#if (score/$currentQuestions.length) <= 0.3}
-                <h6>Oops! Maybe study up and try again.</h6>
+                  {/if}
+                  {#if questionNum === 0}<p>
+                      Category: {question.category}
+                    </p>{/if}
+                  <Alert
+                    color={alertColor}
+                    isOpen={visible}
+                    fade={false}
+                    toggle={() => (visible = false)}
+                  >
+                    {message}
+                  </Alert>
+                  <p>Question {index + 1}: {question.question}</p>
 
-                {:else if (score/$currentQuestions.length) > 0.3 && (score/$currentQuestions.length) <= 0.6}
+                  {#if question.type === "boolean"}
+                    {#if flipCoin() === 1}
+                      <div>
+                        <label>
+                          <input on:click={wrongAnswer} type="radio" />
+                          {question.incorrectAnswer}
+                        </label>
+                      </div>
+                      <div>
+                        <label>
+                          <input on:click={rightAnswer} type="radio" />
+                          {question.correctAnswer}
+                        </label>
+                      </div>
+                    {:else}
+                      <div>
+                        <label>
+                          <input on:click={rightAnswer} type="radio" />
+                          {question.correctAnswer}
+                        </label>
+                      </div>
+                      <div>
+                        <label>
+                          <input on:click={wrongAnswer} type="radio" />
+                          {question.incorrectAnswer}
+                        </label>
+                      </div>
+                    {/if}
+                  {:else if question.type === "multiple"}
+                    {#each shuffle(question.answers) as theAnswers}
+                      <div>
+                        <label>
+                          <input
+                            type="radio"
+                            on:click|preventDefault={theAnswers.correct
+                              ? rightAnswer
+                              : wrongAnswer}
+                          />
+                          {theAnswers.answer}
+                        </label>
+                      </div>
+                    {/each}
+                  {/if}
+                </div>
+              {/if}
+            {/each}
+            {#if questionNum == $currentQuestions.length}
+              <h3>End of quiz.</h3>
+              <h5>
+                {$yourName === "Put your name here" || $yourName === "".trim()
+                  ? ($yourName = randomNamePicker())
+                  : ($yourName = $yourName)}'s tally: {score} out of {$currentQuestions.length}
+              </h5>
+              {#if score / $currentQuestions.length <= 0.3}
+                <h6>Oops! Maybe study up and try again.</h6>
+              {:else if score / $currentQuestions.length === 0}
+                <h6>Wow. THAT didn't go well. Uh, at least you tried?</h6>
+              {:else if score / $currentQuestions.length > 0.3 && score / $currentQuestions.length <= 0.6}
                 <h6>Yeah, not great, but not bad.</h6>
-                
-                {:else if (score/$currentQuestions.length) > 6 && (score/$currentQuestions.length) <=8} 
+              {:else if score / $currentQuestions.length > 6 && score / $currentQuestions.length <= 8}
                 <h5>Well done! Just a bit more to go.</h5>
-                
-                {:else if (score/$currentQuestions.length) == 0.9}
+              {:else if score / $currentQuestions.length == 0.9}
                 <h4>So close! Just inches away from trivia mastery!</h4>
-                
-                {:else if (score/$currentQuestions.length) == 1}
+              {:else if score / $currentQuestions.length == 1}
                 <h3>Excellent! You're a trivia master!</h3>
-                
-                {:else if (score/$currentQuestions.length) == 1 && $optionInfo.difficulty == "hard" && $currentQuestions.length >= 10}
-                <h2>Congradulations! You are king of all trivia! We bow before you utter trivia mastery!</h2>
-                
-                
-                {/if}
-          {/if}
-        {:catch error}
-          <p>Something went wrong: {error.message}</p>
-        {/await}
-      </ModalBody>
+              {:else if score / $currentQuestions.length == 1 && $optionInfo.difficulty == "hard" && $currentQuestions.length >= 10}
+                <h2>
+                  Congradulations! You are king of all trivia! We bow before you
+                  utter trivia mastery!
+                </h2>
+              {/if}
+            {/if}
+          {:catch error}
+            <p>Something went wrong: {error.message}</p>
+          {/await}
+        </ModalBody>
+      </div>
       <ModalFooter>
         {#if questionNum === 0}
           <Button color="secondary" on:click={endGame}>CANCEL</Button>
