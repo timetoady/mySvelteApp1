@@ -30,6 +30,7 @@
   const tryAgain = async () => {
     await getQuestions();
     questionNum = 0;
+    score = 0;
     visible = false;
     alertColor = "info";
     message = "Here's your new quiz! Good luck!";
