@@ -16,9 +16,9 @@
 </script>
 
 <main>
-  <h1>Trivia Time</h1>
+  <h1 class="title">Trivial Time</h1>
   <div class="wrapper">
-    <h2>Care for a round of trivia?</h2>
+    <h5 class="phrase">Care for a round of trivia?</h5>
     <input bind:value={ $yourName }
       class="nameInput"
       name="playerName"
@@ -52,6 +52,7 @@
 
   .button1{
 	  margin-top: .2rem;
+    
   }
 
 
@@ -65,6 +66,9 @@
       flex-direction: column;
       align-items: center;
       max-width: 800px;
+    }
+    .phrase{
+      font-size: 2rem;
     }
   }
 </style>

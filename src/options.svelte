@@ -115,12 +115,12 @@
 </script>
 
 <div>
-  <Button on:click={toggleGame} class="text-uppercase" color="primary"
+  <Button class="text-uppercase btn-sm" on:click={toggleGame} color="primary"
     >LET'S PLAY</Button
   >
 
   <Button
-    class="text-uppercase"
+    class="text-uppercase btn-sm"
     id="optionButton"
     color="secondary"
     on:click={toggle}>Options</Button
@@ -373,5 +373,8 @@
   .scoreboard {
     display: flex;
     justify-content: space-between;
+  }
+  .mainButton{
+    font-size: .5rem;
   }
 </style>
